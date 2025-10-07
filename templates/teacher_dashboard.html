@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block content %}
+
+<div class="space-y-10 max-w-6xl mx-auto">
+
+  <!-- 🕒 Time Limit Form -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-bold mb-4">⏱ Default Experiment Time</h2>
+    <form method="post" action="{{ url_for('set_time') }}" class="flex flex-col sm:flex-row items-center gap-4">
+      <label class="text-sm font-medium text-gray-700">Time (in minutes):</label>
+      <input type="number" name="limit"
+             value="{{ current_user.time_limit }}" min="1" required
+             class="w-full sm:w-auto px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <button class="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700">Save</button>
+    </form>
+  </div>
+
+  <!-- 👨‍🎓 Student List -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-bold mb-4">👨‍🎓 Your Students</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm divide-y divide-gray-200">
+        <thead class="bg-gray-100 text-left">
+          <tr>
+            <th class="px-4 py-2">ID</th>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Email</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for s in students %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-2">{{ s.id }}</td>
+              <td class="px-4 py-2">{{ s.name }}</td>
+              <td class="px-4 py-2">{{ s.email }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 📜 Session History -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-bold mb-4">📜 Recent Sessions</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm divide-y divide-gray-200">
+        <thead class="bg-gray-100 text-left">
+          <tr>
+            <th class="px-4 py-2">Student</th>
+            <th class="px-4 py-2">Login</th>
+            <th class="px-4 py-2">Logout</th>
+            <th class="px-4 py-2">Summary</th>
+            <th class="px-4 py-2">Recording</th>   {# NEW #}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for ss in sessions %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2">{{ ss.student_id }}</td>
+            <td class="px-4 py-2">{{ ss.login_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="px-4 py-2">{{ ss.logout_at and ss.logout_at.strftime('%H:%M') or '–' }}</td>
+            <td class="px-4 py-2 whitespace-pre-line">{{ ss.summary or '' }}</td>
+            <td class="px-4 py-2">
+              {% if recording_exists(ss.id) %}
+                <video src="{{ url_for('static',
+                                       filename='recordings/session_%d.webm' % ss.id) }}"
+                       controls preload="none" class="w-40 rounded-md"></video>
+              {% else %}
+                –
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<div class="mb-8">
+  <h1 class="text-2xl font-bold mb-4">👥 Manage Users</h1>
+  <a href="{{ url_for('admin_add') }}"
+     class="inline-block bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+    ➕ Add User
+  </a>
+</div>
+
+<div class="overflow-x-auto bg-white rounded-lg shadow-md mb-10">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-100">
+      <tr class="text-left text-sm font-medium text-gray-600">
+        <th class="px-4 py-2">ID</th>
+        <th class="px-4 py-2">Name</th>
+        <th class="px-4 py-2">Email</th>
+        <th class="px-4 py-2">Role</th>
+        <th class="px-4 py-2">Teacher</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 text-sm">
+      {% for u in users %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-2">{{ u.id }}</td>
+          <td class="px-4 py-2">{{ u.name }}</td>
+          <td class="px-4 py-2">{{ u.email }}</td>
+          <td class="px-4 py-2 capitalize">{{ u.role }}</td>
+          <td class="px-4 py-2">{{ u.teacher_id or '' }}</td>
+          <td class="px-4 py-2">
+            {% if u.id != current_user.id %}
+              <form method="post" action="{{ url_for('admin_delete', uid=u.id) }}"
+                    onsubmit="return confirm('Delete user?')" class="inline">
+                <button class="text-red-600 hover:text-red-800 font-medium">🗑 Delete</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+  <h2 class="text-xl font-semibold mb-4">🎓 Assign Student to Teacher</h2>
+  <form method="post" action="{{ url_for('admin_assign') }}" class="space-y-4">
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <select name="student" required class="flex-1 px-4 py-2 border rounded-md">
+        <option value="">Select student</option>
+        {% for u in users if u.role=='student' %}
+          <option value="{{u.id}}">{{u.name}} (#{{u.id}})</option>
+        {% endfor %}
+      </select>
+      <span class="text-gray-500 text-sm">→</span>
+      <select name="teacher" required class="flex-1 px-4 py-2 border rounded-md">
+        <option value="">Select teacher</option>
+        {% for t in users if t.role=='teacher' %}
+          <option value="{{t.id}}">{{t.name}}</option>
+        {% endfor %}
+      </select>
+      <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+        Assign
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

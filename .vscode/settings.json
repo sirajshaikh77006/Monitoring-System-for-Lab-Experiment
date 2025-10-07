@@ -1,0 +1,5 @@
+{
+  // Disable JS/TS validation inside Jinja templates
+  "javascript.validate.enable": false,
+  "typescript.validate.enable": false
+}

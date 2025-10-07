@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+  <h2 class="text-2xl font-bold mb-4">👋 Welcome, {{ user.name }}</h2>
+
+  <p class="text-gray-700 mb-6">
+    Your experiment ends at:
+    <span class="font-semibold text-red-600">{{ deadline.strftime('%H:%M:%S') }}</span>
+  </p>
+
+  <form id="logoutForm"
+        action="{{ url_for('logout_', sid=sess['id']) }}"
+        method="post"
+        class="space-y-4">
+    <div>
+      <label for="summary" class="block mb-1 text-sm font-medium">Summary</label>
+      <textarea id="summary" name="summary" rows="4" required
+                placeholder="Write what you did during the experiment…"
+                class="w-full p-4 border rounded-md focus:ring-2
+                       focus:ring-blue-500 resize-none"></textarea>
+    </div>
+    <div class="text-right">
+      <button class="bg-red-600 text-white px-6 py-2 rounded-md
+                     hover:bg-red-700 transition">
+        End & Submit
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  /* ── server data ───────────────────────────── */
+  const sid        = {{ sess['id']|int }};
+  const deadlineMs = {{ (deadline.timestamp() * 1000)|int }};
+
+  /* ── screen capture & upload ───────────────── */
+  let recorder = null;       // 🔸 so we can stop it on logout
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {frameRate: 15}, audio: false
+      });
+      recorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
+      recorder.ondataavailable = e => {
+        if (e.data && e.data.size) {
+          const fd = new FormData();
+          fd.append('chunk', e.data, 'blob.webm');
+          fetch(`/upload_chunk/${sid}`, {method: 'POST', body: fd});
+        }
+      };
+      recorder.start(10_000);                // 10 s blobs
+      window.addEventListener('beforeunload', () => recorder.stop());
+    } catch(err) {
+      alert('Screen-capture permission is required.');
+    }
+  }
+  startRecording();
+
+  /* stop recording when the summary form is submitted */
+  document.getElementById('logoutForm')
+          .addEventListener('submit', () => recorder && recorder.stop());  /* 🔸 */
+
+  /* ── auto-logout timer ─────────────────────── */
+  setInterval(() => {
+    if (Date.now() >= deadlineMs) {
+      fetch(`/auto_logout/${sid}`, {method:'POST'})
+        .then(() => window.location.href = '/');
+    }
+  }, 1_000);
+</script>
+{% endblock %}

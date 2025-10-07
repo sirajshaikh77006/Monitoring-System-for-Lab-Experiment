@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}App{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Flowbite (optional but recommended) -->
+  <script src="https://unpkg.com/flowbite@1.6.5/dist/flowbite.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <nav class="bg-blue-600 shadow-lg fixed w-full z-10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <span class="text-white font-bold text-lg">📊 Exp Monitor</span>
+      {% if current_user.is_authenticated %}
+        <span class="text-white">{{ current_user.name }} ({{ current_user.role }})</span>
+         {% if current_user.role != 'student' %}
+        <form action="{{ url_for('logout') }}" method="get">
+          <button
+            class="bg-white/20 hover:bg-white/30 text-white text-sm
+                   px-3 py-1 rounded transition duration-150">
+            Logout
+          </button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </nav>
+
+  <main class="pt-20 px-4 max-w-5xl mx-auto">
+    {% with m = get_flashed_messages(with_categories=true) %}
+      {% if m %}
+        {% for cat, msg in m %}
+          <div class="p-3 mb-3 rounded bg-{{ 'red-100' if cat == 'error' else 'green-100' }} text-sm">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
